@@ -187,7 +187,7 @@ async def test_it_does_not_run_twice(hass: HomeAssistant, session):
     assert second == first
 
 
-async def test_a_fresh_install_needs_no_migration(hass: HomeAssistant, session, setup_entry):
+async def test_a_fresh_install_needs_no_migration(hass: HomeAssistant, session):
     """A version-2 entry created today already carries the new schemes."""
     entry = MockConfigEntry(
         domain=DOMAIN, data=LEGACY_ENTRY_DATA, options={}, version=2, title="Luxor Controller"

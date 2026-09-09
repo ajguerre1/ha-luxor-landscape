@@ -14,7 +14,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 
-from custom_components.luxor.const import DOMAIN
+from custom_components.luxor.const import DOMAIN, light_unique_id
 from custom_components.luxor.data import SLOT_ISSUE
 from custom_components.luxor.luxor import SlotClaim, SlotTable
 from custom_components.luxor.store import SlotStore
@@ -25,8 +25,13 @@ from custom_components.luxor.store import SlotStore
 SCENE_A = "scene.lxtwo_000000000_theme_a"
 
 
+CONTROLLER = "lxtwo-000000000"
+
+
 def _entity(hass: HomeAssistant, group: int) -> str:
-    return er.async_get(hass).async_get_entity_id("light", DOMAIN, f"LUXOR_LIGHT_{group}")
+    return er.async_get(hass).async_get_entity_id(
+        "light", DOMAIN, light_unique_id(CONTROLLER, group)
+    )
 
 
 # --- setup ----------------------------------------------------------------------------------------

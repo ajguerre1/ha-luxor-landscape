@@ -46,10 +46,14 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 LEGACY_LIGHT_UNIQUE_ID = re.compile(r"^LUXOR_LIGHT_(\d+)$")
-#: `"{name}{index}"`. The index is the trailing digits -- but only unambiguously so when the name
-#: does not itself end in one. "X1" at index 2 and "X" at index 12 both produce "X12", and there is
-#: no way to tell them apart from the string. Those are skipped rather than guessed at.
-LEGACY_SCENE_UNIQUE_ID = re.compile(r"^(?P<name>.*?)(?P<index>\d+)$")
+#: `"{name}{index}"`, which is only decodable when the trailing digit run is a SINGLE character.
+#:
+#: Any longer run can be split more than one way -- `"Zone 12"` is theme `"Zone 1"` at index 2 just
+#: as readily as theme `"Zone "` at index 12 -- and nothing in the string says which. An earlier
+#: version of this rule asked whether the name ended in a digit, which passes `"Zone 12"` and
+#: rewrites it on a guess; CI caught that. Theme indices reach 25, so two-digit indices are real
+#: and are simply not recoverable from the unique_id alone.
+LEGACY_SCENE_UNIQUE_ID = re.compile(r"^(?P<name>.*[^\d])(?P<index>\d)$")
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -129,7 +133,7 @@ def _migrate_entities(
             continue
 
         match = LEGACY_SCENE_UNIQUE_ID.match(record.unique_id)
-        if not match or match.group("name").rstrip().endswith(tuple("0123456789")):
+        if not match:
             # Ambiguous, or not the shape we expect. Left exactly as it is: a scene with an old
             # unique_id keeps working, whereas a wrong guess renames the entity.
             skipped.append(record.entity_id)

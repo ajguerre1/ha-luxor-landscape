@@ -22,11 +22,20 @@ from custom_components.luxor.const import DOMAIN, light_device_identifier
 CONTROLLER = "lxtwo-000000000"
 
 
-async def test_the_entry_is_adopted_not_migrated(hass: HomeAssistant, setup_entry):
-    """A legacy entry loads without `async_migrate_entry` firing."""
+async def test_a_legacy_entry_is_adopted_and_then_migrated(hass: HomeAssistant, setup_entry):
+    """A version-1 entry loads and comes out at version 2.
+
+    Through v0.1.x this test asserted the entry stayed at version 1, because adoption was the whole
+    mechanism and firing a migration would have been the bug. Version 2 deliberately changes that:
+    the entry is still *adopted* -- never deleted, never recreated -- and then its inherited
+    identity schemes are converted in place. `tests/ha/test_migrate.py` is what proves the
+    conversion moves nothing.
+
+    The entry data is untouched either way, which is what the swap actually rests on.
+    """
     entry = await setup_entry()
     assert entry.state is entry.state.LOADED
-    assert entry.version == 1
+    assert entry.version == 2
     assert entry.data["host"] == "192.0.2.10"
 
 
