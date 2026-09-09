@@ -10,9 +10,11 @@ from typing import Final
 
 DOMAIN: Final = "luxor"
 
-#: Kept at 1 so `async_migrate_entry` never fires against the config entry the integration this
-#: replaces created. The entry is adopted, not recreated -- that is the whole drop-in mechanism.
-CONFIG_VERSION: Final = 1
+#: Version 1 adopted the previous integration's entry untouched, which is what made the swap
+#: invisible. Version 2 corrects the identity schemes it inherited -- see `migrate.py`. Adoption
+#: had to ship and be proven on its own first, so that a missing entity would have one candidate
+#: cause rather than two.
+CONFIG_VERSION: Final = 2
 
 CONF_HOST: Final = "host"
 CONF_GROUP_INTERVAL: Final = "group_interval"
@@ -33,9 +35,26 @@ DEFAULT_COLOUR_THEME: Final = 0
 
 MANUFACTURER: Final = "FXLuminaire"
 
-#: Reproduced exactly, and both parts are off-spec. The namespace is not the integration domain and
-#: the value is an int where Home Assistant's type is str. Adopting them is what preserves 65
-#: devices; they are corrected later in one guarded migration.
-DEVICE_LIGHT_NAMESPACE: Final = "luxor_light"
+#: The namespace the previous integration used for per-group devices. Off-spec twice over: it is
+#: not the integration domain, and its value is an `int` where Home Assistant's type is `str`.
+#: Adopting it is what preserved 65 devices through the swap; `migrate.py` converts it, and this
+#: constant survives only so the migration can recognise what it is converting FROM.
+LEGACY_DEVICE_NAMESPACE: Final = "luxor_light"
+
+
+#: What identity looks like from version 2 onward. Controller-scoped, so a second Luxor on the
+#: same Home Assistant cannot collide with the first -- which `LUXOR_LIGHT_{n}` would have done,
+#: silently, since group numbers start at 1 on every controller.
+def light_unique_id(controller: str, group: int) -> str:
+    return f"{controller}_group_{group}"
+
+
+def scene_unique_id(controller: str, theme_index: int) -> str:
+    return f"{controller}_theme_{theme_index}"
+
+
+def light_device_identifier(controller: str, group: int) -> tuple[str, str]:
+    return (DOMAIN, f"{controller}:group:{group}")
+
 
 PLATFORMS: Final = ["light", "scene", "button"]

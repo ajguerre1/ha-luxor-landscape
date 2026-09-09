@@ -22,8 +22,9 @@ from . import LuxorConfigEntry
 from .const import (
     CONF_COLOUR_THEME,
     DEFAULT_COLOUR_THEME,
-    DEVICE_LIGHT_NAMESPACE,
     MANUFACTURER,
+    light_device_identifier,
+    light_unique_id,
 )
 from .luxor import Group, LuxorError, resolve_hs, set_group_colour
 
@@ -85,9 +86,11 @@ class LuxorLight(LightEntity):
         self._entry = entry
         self._group_number = group_number
 
-        # Reproduced exactly. Change this and 65 entities are orphaned and recreated with a `_2`
-        # suffix, which would also silently drop them out of the Landscape Lights group helper.
-        self._attr_unique_id = f"LUXOR_LIGHT_{group_number}"
+        # Controller-scoped from version 2. The previous scheme, `LUXOR_LIGHT_{n}`, was adopted
+        # verbatim through the swap so nothing moved, then converted in place by `migrate.py` --
+        # which preserves the entity_id, and therefore the `light.landscape_lights` group
+        # membership that holds these ids as plain strings.
+        self._attr_unique_id = light_unique_id(data.controller, group_number)
 
         colour_capable = data.controller.lower().startswith(("lxzdc", "lxtwo"))
         mode = ColorMode.HS if colour_capable else ColorMode.BRIGHTNESS
@@ -103,9 +106,7 @@ class LuxorLight(LightEntity):
     @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
-            # `luxor_light` is not the integration domain and the id is an int. Both are off-spec
-            # and both are reproduced, because that is what keeps the existing 65 devices.
-            identifiers={(DEVICE_LIGHT_NAMESPACE, self._group_number)},
+            identifiers={light_device_identifier(self._data.controller, self._group_number)},
             manufacturer=MANUFACTURER,
             name=self.name,
             # `via_device_id`, not `via_device`. The latter is gone from DeviceInfo in 2026.9 and

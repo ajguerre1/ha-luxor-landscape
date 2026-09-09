@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.luxor.const import DEVICE_LIGHT_NAMESPACE, DOMAIN
+from custom_components.luxor.const import DOMAIN, light_device_identifier
 
 CONTROLLER = "lxtwo-000000000"
 
@@ -46,7 +46,7 @@ async def test_every_light_unique_id_is_reproduced_exactly(hass: HomeAssistant, 
     entry = await setup_entry()
     entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     ids = {e.unique_id for e in entities if e.domain == "light"}
-    assert ids == {f"LUXOR_LIGHT_{n}" for n in range(1, 66)}
+    assert ids == {f"{CONTROLLER}_group_{n}" for n in range(1, 66)}
 
 
 async def test_every_scene_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
@@ -54,7 +54,7 @@ async def test_every_scene_unique_id_is_reproduced_exactly(hass: HomeAssistant, 
     entry = await setup_entry()
     entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     ids = {e.unique_id for e in entities if e.domain == "scene"}
-    assert ids == {"Theme A0", "Theme B1", "Theme C2"}
+    assert ids == {f"{CONTROLLER}_theme_{i}" for i in (0, 1, 2)}
 
 
 async def test_no_entity_id_carries_a_suffix(hass: HomeAssistant, setup_entry):
@@ -68,11 +68,11 @@ async def test_no_entity_id_carries_a_suffix(hass: HomeAssistant, setup_entry):
 async def test_device_identifiers_are_reproduced_including_their_flaws(
     hass: HomeAssistant, setup_entry
 ):
-    """`("luxor_light", <int>)` per group, and `("luxor", <controller>)` for the hub.
+    """`("luxor", "<controller>:group:N")` per group, and `("luxor", <controller>)` for the hub.
 
-    Both are off-spec: the namespace is not the integration domain and the value is an `int` where
-    Home Assistant's type is `str`. Reproducing them is what keeps the existing 65 devices, and
-    asserting it here is what stops a well-meaning cleanup from orphaning them.
+    Version 1 reproduced the previous integration's `("luxor_light", <int>)` verbatim -- off-spec
+    twice over -- because that is what kept the existing 65 devices through the swap. Version 2
+    converts them in place, which `tests/ha/test_migrate.py` proves does not move a device_id.
     """
     entry = await setup_entry()
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
@@ -80,9 +80,9 @@ async def test_device_identifiers_are_reproduced_including_their_flaws(
     hub = [d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers]
     assert len(hub) == 1
 
-    light_ids = {i for d in devices for i in d.identifiers if i[0] == DEVICE_LIGHT_NAMESPACE}
-    assert light_ids == {(DEVICE_LIGHT_NAMESPACE, n) for n in range(1, 66)}
-    assert all(isinstance(i[1], int) for i in light_ids), "the id must stay an int, not become str"
+    light_ids = {i for d in devices for i in d.identifiers if i != (DOMAIN, CONTROLLER)}
+    assert light_ids == {light_device_identifier(CONTROLLER, n) for n in range(1, 66)}
+    assert all(isinstance(i[1], str) for i in light_ids), "identifier values must be str"
 
 
 async def test_device_count(hass: HomeAssistant, setup_entry):
@@ -96,7 +96,7 @@ async def test_every_light_hangs_off_the_controller(hass: HomeAssistant, setup_e
     entry = await setup_entry()
     devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
     hub = next(d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers)
-    children = [d for d in devices if any(i[0] == DEVICE_LIGHT_NAMESPACE for i in d.identifiers)]
+    children = [d for d in devices if (DOMAIN, CONTROLLER) not in d.identifiers]
     assert len(children) == 65
     assert all(d.via_device_id == hub.id for d in children)
 

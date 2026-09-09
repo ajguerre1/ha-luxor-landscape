@@ -23,6 +23,7 @@ from .const import (
 from .coordinator import LuxorGroupCoordinator, LuxorThemeCoordinator
 from .data import LuxorData
 from .luxor import LuxorClient, LuxorError
+from .migrate import async_migrate_entry as _async_migrate_entry
 from .store import SlotStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -77,6 +78,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: LuxorConfigEntry) -> boo
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: LuxorConfigEntry) -> bool:
+    """Home Assistant calls this before setup when the entry is older than CONFIG_VERSION."""
+    return await _async_migrate_entry(hass, entry)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: LuxorConfigEntry) -> bool:

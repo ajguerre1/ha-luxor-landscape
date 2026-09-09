@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import LuxorConfigEntry
-from .const import DOMAIN, MANUFACTURER
+from .const import DOMAIN, MANUFACTURER, scene_unique_id
 from .luxor import LuxorError
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,11 +58,11 @@ class LuxorScene(Scene):
         self._data = data
         self._theme_index = theme_index
         self._attr_name = name
-        # Reproduced exactly, including its flaws: it is ambiguous (theme "X" at index 12 and theme
-        # "X1" at index 2 both give "X12") and it orphans the entity if a theme is renamed on the
-        # faceplate. Adopting it is what preserves the three existing scene entities; it is
-        # corrected later in one guarded migration.
-        self._attr_unique_id = f"{name}{theme_index}"
+        # Controller-scoped and index-based from version 2. The previous scheme derived from the
+        # theme's NAME, so renaming a theme on the faceplate orphaned the entity -- and it was
+        # ambiguous besides ("X" at index 12 and "X1" at index 2 both give "X12"). Adopted
+        # verbatim through the swap, then converted by `migrate.py`.
+        self._attr_unique_id = scene_unique_id(data.controller, theme_index)
 
     @property
     def device_info(self) -> DeviceInfo:
