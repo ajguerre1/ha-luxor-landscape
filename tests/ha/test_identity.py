@@ -51,7 +51,11 @@ async def test_entity_counts(hass: HomeAssistant, setup_entry):
 
 
 async def test_every_light_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
-    """`LUXOR_LIGHT_{group}` for groups 1-65, and nothing else."""
+    """`<controller>_group_{n}` for groups 1-65, and nothing else.
+
+    Controller-scoped since v0.2.0. The previous `LUXOR_LIGHT_{n}` is what `test_migrate.py`
+    converts from, and is not expected to survive here.
+    """
     entry = await setup_entry()
     entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     ids = {e.unique_id for e in entities if e.domain == "light"}
