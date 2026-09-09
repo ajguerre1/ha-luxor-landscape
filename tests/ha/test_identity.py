@@ -17,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.luxor.const import DOMAIN, light_device_identifier
+from custom_components.luxor.const import DOMAIN, light_device_identifier, light_unique_id
 
 CONTROLLER = "lxtwo-000000000"
 
@@ -115,7 +115,7 @@ async def test_a_light_keeps_the_controller_s_own_name(hass: HomeAssistant, setu
     """Entity names come from the controller, so a rename there follows through."""
     await setup_entry()
     registry = er.async_get(hass)
-    entity = registry.async_get_entity_id("light", DOMAIN, f"LUXOR_LIGHT_{group}")
+    entity = registry.async_get_entity_id("light", DOMAIN, light_unique_id(CONTROLLER, group))
     assert entity is not None
     state = hass.states.get(entity)
     assert state.attributes["friendly_name"] == (
