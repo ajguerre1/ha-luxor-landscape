@@ -1,0 +1,141 @@
+"""Identity, which is the whole drop-in mechanism.
+
+Home Assistant keys entities on `(domain, platform, unique_id)` and devices on their identifiers.
+Reproduce those and a swap is invisible; change one character and 68 entities are orphaned and
+recreated with a `_2` suffix.
+
+That is not merely untidy here. A `group` helper on the live system holds all 65 light entity ids
+as **strings**, and nothing reconciles them: a member whose id moves drops out silently and the
+group carries on with fewer lights. So these are the cheapest tests in the repository and the ones
+most worth having.
+"""
+
+from __future__ import annotations
+
+import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+
+from custom_components.luxor.const import DEVICE_LIGHT_NAMESPACE, DOMAIN
+
+CONTROLLER = "lxtwo-000000000"
+
+
+async def test_the_entry_is_adopted_not_migrated(hass: HomeAssistant, setup_entry):
+    """A legacy entry loads without `async_migrate_entry` firing."""
+    entry = await setup_entry()
+    assert entry.state is entry.state.LOADED
+    assert entry.version == 1
+    assert entry.data["host"] == "192.0.2.10"
+
+
+async def test_entity_counts(hass: HomeAssistant, setup_entry):
+    await setup_entry()
+    registry = er.async_get(hass)
+    entities = [e for e in registry.entities.values() if e.platform == DOMAIN]
+    lights = [e for e in entities if e.domain == "light"]
+    scenes = [e for e in entities if e.domain == "scene"]
+    buttons = [e for e in entities if e.domain == "button"]
+    assert len(lights) == 65
+    assert len(scenes) == 3
+    assert len(buttons) == 1
+
+
+async def test_every_light_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
+    """`LUXOR_LIGHT_{group}` for groups 1-65, and nothing else."""
+    await setup_entry()
+    registry = er.async_get(hass)
+    ids = {
+        e.unique_id
+        for e in registry.entities.values()
+        if e.platform == DOMAIN and e.domain == "light"
+    }
+    assert ids == {f"LUXOR_LIGHT_{n}" for n in range(1, 66)}
+
+
+async def test_every_scene_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
+    """`{name}{index}`, flaws and all. Adopting it is what preserves the three scene entities."""
+    await setup_entry()
+    registry = er.async_get(hass)
+    ids = {
+        e.unique_id
+        for e in registry.entities.values()
+        if e.platform == DOMAIN and e.domain == "scene"
+    }
+    assert ids == {"Theme A0", "Theme B1", "Theme C2"}
+
+
+async def test_no_entity_id_carries_a_suffix(hass: HomeAssistant, setup_entry):
+    """A `_2` anywhere means identity was not preserved. It is a stop, not a rename."""
+    await setup_entry()
+    registry = er.async_get(hass)
+    suffixed = [
+        e.entity_id
+        for e in registry.entities.values()
+        if e.platform == DOMAIN and e.entity_id.endswith(("_2", "_3"))
+    ]
+    assert suffixed == []
+
+
+async def test_device_identifiers_are_reproduced_including_their_flaws(
+    hass: HomeAssistant, setup_entry
+):
+    """`("luxor_light", <int>)` per group, and `("luxor", <controller>)` for the hub.
+
+    Both are off-spec: the namespace is not the integration domain and the value is an `int` where
+    Home Assistant's type is `str`. Reproducing them is what keeps the existing 65 devices, and
+    asserting it here is what stops a well-meaning cleanup from orphaning them.
+    """
+    await setup_entry()
+    registry = dr.async_get(hass)
+    devices = [
+        d
+        for d in registry.devices.values()
+        if any(i[0] in {DOMAIN, DEVICE_LIGHT_NAMESPACE} for i in d.identifiers)
+    ]
+
+    hub = [d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers]
+    assert len(hub) == 1
+
+    light_ids = {i for d in devices for i in d.identifiers if i[0] == DEVICE_LIGHT_NAMESPACE}
+    assert light_ids == {(DEVICE_LIGHT_NAMESPACE, n) for n in range(1, 66)}
+    assert all(isinstance(i[1], int) for i in light_ids), "the id must stay an int, not become str"
+
+
+async def test_device_count(hass: HomeAssistant, setup_entry):
+    """One controller plus one per group."""
+    await setup_entry()
+    registry = dr.async_get(hass)
+    devices = [
+        d
+        for d in registry.devices.values()
+        if any(i[0] in {DOMAIN, DEVICE_LIGHT_NAMESPACE} for i in d.identifiers)
+    ]
+    assert len(devices) == 66
+
+
+async def test_every_light_hangs_off_the_controller(hass: HomeAssistant, setup_entry):
+    await setup_entry()
+    registry = dr.async_get(hass)
+    hub = registry.async_get_device(identifiers={(DOMAIN, CONTROLLER)})
+    children = [
+        d
+        for d in registry.devices.values()
+        if any(i[0] == DEVICE_LIGHT_NAMESPACE for i in d.identifiers)
+    ]
+    assert len(children) == 65
+    assert all(d.via_device_id == hub.id for d in children)
+
+
+@pytest.mark.parametrize("group", [1, 23, 65])
+async def test_a_light_keeps_the_controller_s_own_name(hass: HomeAssistant, setup_entry, group):
+    """Entity names come from the controller, so a rename there follows through."""
+    await setup_entry()
+    registry = er.async_get(hass)
+    entity = registry.async_get_entity_id("light", DOMAIN, f"LUXOR_LIGHT_{group}")
+    assert entity is not None
+    state = hass.states.get(entity)
+    assert state.attributes["friendly_name"] == (
+        "Group Seventeen Xyz" if group == 7 else f"Group {group:02d}"
+    )

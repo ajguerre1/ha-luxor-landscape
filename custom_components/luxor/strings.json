@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "FX Luminaire Luxor",
+        "description": "The controller's address on your network. It speaks plain HTTP on port 80.",
+        "data": {
+          "host": "Host"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach a Luxor controller at that address."
+    },
+    "abort": {
+      "already_configured": "This controller is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Luxor options",
+        "description": "Colour is stored in a theme, not on the group, so a colour set here survives the controller's own schedule. Choose which theme it is written to.",
+        "data": {
+          "group_interval": "Seconds between light group reads",
+          "theme_interval": "Seconds between theme reads",
+          "colour_theme": "Theme index that colour changes are written to"
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "all_off": {
+        "name": "All off"
+      }
+    }
+  },
+  "issues": {
+    "slot_table_stale": {
+      "title": "Luxor colour writing is disabled",
+      "description": "{count} palette-slot claim(s) no longer match the controller, so a slot may now belong to a different light group than the one that claimed it. Colour changes are refused until this is resolved. Details: {detail}"
+    }
+  }
+}

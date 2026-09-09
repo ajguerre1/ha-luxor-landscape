@@ -4,7 +4,7 @@
   "codeowners": [
     "@ajguerre1"
   ],
-  "config_flow": false,
+  "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/ajguerre1/ha-luxor-landscape",
   "integration_type": "hub",

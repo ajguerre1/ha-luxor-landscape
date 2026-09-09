@@ -6,6 +6,7 @@ live in a published library -- would be a move rather than a rewrite.
 """
 
 from .client import LuxorClient
+from .colour import ColourWrite, ColourWriteError, resolve_hs, set_group_colour
 from .const import (
     ALLOWED_METHODS,
     ALLOWED_READ_METHODS,
@@ -41,6 +42,7 @@ from .errors import (
     MethodNotAllowedError,
 )
 from .model import Colour, Group, Theme, ThemeGroup, normalise_hue
+from .slots import SlotAllocationError, SlotClaim, SlotProblem, SlotTable, revalidate
 
 __all__ = [
     "ALLOWED_METHODS",
@@ -66,6 +68,8 @@ __all__ = [
     "STATUS_UNKNOWN_METHOD",
     "Colour",
     "ColourRangeError",
+    "ColourWrite",
+    "ColourWriteError",
     "EmptyBodyError",
     "Group",
     "GroupNameError",
@@ -75,8 +79,15 @@ __all__ = [
     "LuxorError",
     "LuxorStatusError",
     "MethodNotAllowedError",
+    "SlotAllocationError",
+    "SlotClaim",
+    "SlotProblem",
+    "SlotTable",
     "Theme",
     "ThemeGroup",
     "is_static_colour",
     "normalise_hue",
+    "resolve_hs",
+    "revalidate",
+    "set_group_colour",
 ]
