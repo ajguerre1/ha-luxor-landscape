@@ -1,0 +1,395 @@
+{
+  "Status": 0,
+  "GroupList": [
+    {
+      "Name": "Group 15",
+      "Grp": 15,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 52",
+      "Grp": 52,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 45",
+      "Grp": 45,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 62",
+      "Grp": 62,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 63",
+      "Grp": 63,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 64",
+      "Grp": 64,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 65",
+      "Grp": 65,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 39",
+      "Grp": 39,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 46",
+      "Grp": 46,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 58",
+      "Grp": 58,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 59",
+      "Grp": 59,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 60",
+      "Grp": 60,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 38",
+      "Grp": 38,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 40",
+      "Grp": 40,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 41",
+      "Grp": 41,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 42",
+      "Grp": 42,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 43",
+      "Grp": 43,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 44",
+      "Grp": 44,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 23",
+      "Grp": 23,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 24",
+      "Grp": 24,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 25",
+      "Grp": 25,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 26",
+      "Grp": 26,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 27",
+      "Grp": 27,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 28",
+      "Grp": 28,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 29",
+      "Grp": 29,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 30",
+      "Grp": 30,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 61",
+      "Grp": 61,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 53",
+      "Grp": 53,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 54",
+      "Grp": 54,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 55",
+      "Grp": 55,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 56",
+      "Grp": 56,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 57",
+      "Grp": 57,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 21",
+      "Grp": 21,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 08",
+      "Grp": 8,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 09",
+      "Grp": 9,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 17",
+      "Grp": 17,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 18",
+      "Grp": 18,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 20",
+      "Grp": 20,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 19",
+      "Grp": 19,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 48",
+      "Grp": 48,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 50",
+      "Grp": 50,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 16",
+      "Grp": 16,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 11",
+      "Grp": 11,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 12",
+      "Grp": 12,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 13",
+      "Grp": 13,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 14",
+      "Grp": 14,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 10",
+      "Grp": 10,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 51",
+      "Grp": 51,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 31",
+      "Grp": 31,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 32",
+      "Grp": 32,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 33",
+      "Grp": 33,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 34",
+      "Grp": 34,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 35",
+      "Grp": 35,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 36",
+      "Grp": 36,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 37",
+      "Grp": 37,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 47",
+      "Grp": 47,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 01",
+      "Grp": 1,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 49",
+      "Grp": 49,
+      "Inten": 0,
+      "Colr": 3
+    },
+    {
+      "Name": "Group 22",
+      "Grp": 22,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 02",
+      "Grp": 2,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 03",
+      "Grp": 3,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 04",
+      "Grp": 4,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 05",
+      "Grp": 5,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group 06",
+      "Grp": 6,
+      "Inten": 0,
+      "Colr": 1
+    },
+    {
+      "Name": "Group Seventeen Xyz",
+      "Grp": 7,
+      "Inten": 0,
+      "Colr": 1
+    }
+  ]
+}

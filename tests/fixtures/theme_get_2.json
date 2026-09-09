@@ -1,0 +1,15 @@
+{
+  "Status": 0,
+  "Groups": [
+    {
+      "GroupNumber": 21,
+      "Intensity": 100,
+      "Color": 5
+    },
+    {
+      "GroupNumber": 61,
+      "Intensity": 100,
+      "Color": 5
+    }
+  ]
+}

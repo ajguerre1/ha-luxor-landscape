@@ -1,0 +1,39 @@
+# Editor and assistant scratch -- not part of the project history
+*-local/
+nimbalyst-local/
+
+# Local-only working copies that legitimately contain site data. The controller's address, and the
+# group names, which are the actual plants and locations on a specific property.
+local/
+captures/
+*.raw.log
+.env
+secrets.yaml
+
+# tests/test_no_site_data.py reads local/site-terms.txt as its denylist, so the denylist itself
+# never enters the repo -- which is the point, since the terms are the secret.
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Local development tooling. Not part of the integration.
+.claude/

@@ -1,0 +1,18 @@
+{
+  "domain": "luxor",
+  "name": "FX Luminaire Luxor",
+  "codeowners": [
+    "@ajguerre1"
+  ],
+  "config_flow": false,
+  "dependencies": [],
+  "documentation": "https://github.com/ajguerre1/ha-luxor-landscape",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/ajguerre1/ha-luxor-landscape/issues",
+  "loggers": [
+    "custom_components.luxor"
+  ],
+  "requirements": [],
+  "version": "0.1.0"
+}

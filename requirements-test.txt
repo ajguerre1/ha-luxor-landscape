@@ -1,0 +1,24 @@
+# Test dependencies.
+#
+# Everything under custom_components/luxor/luxor/ has no Home Assistant imports and its tests run
+# anywhere, including this Windows dev box. pytest-homeassistant-custom-component pulls in Home
+# Assistant itself, which cannot be imported on Windows (homeassistant.runner imports POSIX-only
+# fcntl), so the HA-dependent tests under tests/ha/ run in CI only.
+
+pytest>=8.0
+pytest-asyncio>=0.24
+ruff>=0.7
+
+# The protocol layer speaks HTTP. Home Assistant supplies aiohttp at runtime, which is why
+# manifest.json stays at requirements: [] -- but the offline tests need it directly.
+aiohttp>=3.10
+
+# A FLOOR, not an exact pin. 0.13.363 is the first release pinning the stable homeassistant
+# 2026.9.0. Without a floor, pip does not fail on an unsatisfiable pin -- it backtracks and
+# quietly installs an ancient release, and the resulting ImportError reads like a bug in this
+# integration rather than a wrong interpreter.
+#
+# A floor rather than `==` so the weekly scheduled run still picks up new Home Assistant releases.
+# Catching breakage from those is the reason that run exists; an exact pin would make it a no-op.
+pytest-homeassistant-custom-component>=0.13.363
+pytest-cov

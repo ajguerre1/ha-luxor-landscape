@@ -1,0 +1,330 @@
+{
+  "Status": 0,
+  "Groups": [
+    {
+      "GroupNumber": 1,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 2,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 3,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 4,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 5,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 6,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 7,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 8,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 9,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 10,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 11,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 12,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 13,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 14,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 15,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 16,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 17,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 18,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 19,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 20,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 21,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 22,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 23,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 24,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 25,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 26,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 27,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 28,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 29,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 30,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 31,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 32,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 33,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 34,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 35,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 36,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 37,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 38,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 39,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 40,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 41,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 42,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 43,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 44,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 45,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 46,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 47,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 48,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 49,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 50,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 51,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 52,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 53,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 54,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 55,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 56,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 57,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 58,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 59,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 60,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 61,
+      "Intensity": 100,
+      "Color": 3
+    },
+    {
+      "GroupNumber": 62,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 63,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 64,
+      "Intensity": 100,
+      "Color": 1
+    },
+    {
+      "GroupNumber": 65,
+      "Intensity": 100,
+      "Color": 1
+    }
+  ]
+}

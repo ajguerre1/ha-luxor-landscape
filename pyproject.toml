@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 100
+# Pinned, NOT inferred. `homeassistant==2026.9.0` declares requires_python >=3.14.2, and the dev
+# box here runs a different interpreter. If ruff inferred the target it would start rewriting to
+# syntax the shipped runtime may not accept.
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["B008"]  # Home Assistant config-flow style relies on calls in argument defaults
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

@@ -1,0 +1,21 @@
+{
+  "Status": 0,
+  "Restricted": 0,
+  "ThemeList": [
+    {
+      "Name": "Theme A",
+      "ThemeIndex": 0,
+      "OnOff": 0
+    },
+    {
+      "Name": "Theme B",
+      "ThemeIndex": 1,
+      "OnOff": 0
+    },
+    {
+      "Name": "Theme C",
+      "ThemeIndex": 2,
+      "OnOff": 0
+    }
+  ]
+}
