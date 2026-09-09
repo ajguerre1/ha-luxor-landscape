@@ -250,3 +250,79 @@ async def test_there_is_no_all_on_entity(hass: HomeAssistant, setup_entry):
     ]
     assert len(buttons) == 1
     assert "all_off" in buttons[0].unique_id
+
+
+# --- save_to_theme: the answer to Q2 and Q3 ------------------------------------------------------
+
+
+async def test_save_to_theme_makes_brightness_durable(hass: HomeAssistant, setup_entry, session):
+    """Q3, measured on hardware first: brightness is transient exactly as colour was.
+
+    A theme stores its own per-group intensity and re-applies it on activation, so a brightness set
+    through `light.turn_on` is gone by the next evening. Making every brightness change durable was
+    rejected -- a slider drag would rewrite the whole 65-group theme on every step -- so it becomes
+    durable only when asked for.
+    """
+    await setup_entry()
+    entity = _entity(hass, 23)
+
+    await hass.services.async_call(
+        "light", SERVICE_TURN_ON, {ATTR_ENTITY_ID: entity, ATTR_BRIGHTNESS: 128}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert session.groups[23]["Inten"] == 50
+
+    # Without saving, the theme takes it back.
+    await hass.services.async_call("scene", "turn_on", {ATTR_ENTITY_ID: SCENE_A}, blocking=True)
+    await hass.async_block_till_done()
+    assert session.groups[23]["Inten"] == 100, "the theme did not reclaim brightness"
+
+    # With saving, it does not.
+    await hass.services.async_call(
+        "light", SERVICE_TURN_ON, {ATTR_ENTITY_ID: entity, ATTR_BRIGHTNESS: 128}, blocking=True
+    )
+    await hass.services.async_call(DOMAIN, "save_to_theme", {ATTR_ENTITY_ID: entity}, blocking=True)
+    await hass.async_block_till_done()
+    await hass.services.async_call("scene", "turn_on", {ATTR_ENTITY_ID: SCENE_A}, blocking=True)
+    await hass.async_block_till_done()
+    assert session.groups[23]["Inten"] == 50, "saving to the theme did not make it durable"
+
+
+async def test_save_to_theme_targets_a_named_theme(hass: HomeAssistant, setup_entry, session):
+    """Q2: per-light theme targeting, without a per-entity setting nobody would find."""
+    await setup_entry()
+    await hass.services.async_call(
+        "light",
+        SERVICE_TURN_ON,
+        {ATTR_ENTITY_ID: _entity(hass, 23), ATTR_BRIGHTNESS: 128},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        DOMAIN,
+        "save_to_theme",
+        {ATTR_ENTITY_ID: _entity(hass, 23), "theme_index": 1},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    saved = next(e for e in session.theme_groups[1] if e["GroupNumber"] == 23)
+    assert saved["Intensity"] == 50
+    # And the default theme was left alone.
+    default = next(e for e in session.theme_groups[0] if e["GroupNumber"] == 23)
+    assert default["Intensity"] == 100
+
+
+async def test_save_to_theme_refuses_a_theme_the_group_is_not_in(
+    hass: HomeAssistant, setup_entry, session
+):
+    """Theme 2 holds two groups. Saving group 23 there would never be applied."""
+    await setup_entry()
+    before = [dict(e) for e in session.theme_groups[2]]
+    with pytest.raises(HomeAssistantError, match="not a member of theme 2"):
+        await hass.services.async_call(
+            DOMAIN,
+            "save_to_theme",
+            {ATTR_ENTITY_ID: _entity(hass, 23), "theme_index": 2},
+            blocking=True,
+        )
+    assert session.theme_groups[2] == before

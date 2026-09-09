@@ -41,5 +41,17 @@
       "title": "Luxor colour writing is disabled",
       "description": "{count} palette-slot claim(s) no longer match the controller, so a slot may now belong to a different light group than the one that claimed it. Colour changes are refused until this is resolved. Details: {detail}"
     }
+  },
+  "services": {
+    "save_to_theme": {
+      "name": "Save to theme",
+      "description": "Write a light's current brightness and colour into a Luxor theme so they persist. Both are otherwise temporary: a theme stores its own per-group intensity and colour and re-applies both whenever it runs.",
+      "fields": {
+        "theme_index": {
+          "name": "Theme",
+          "description": "Which theme to write to. Defaults to the theme set in the integration's options. Choose deliberately: the alarm themes are themes too."
+        }
+      }
+    }
   }
 }

@@ -11,9 +11,11 @@ import logging
 from datetime import datetime
 from typing import Any
 
+import voluptuous as vol
 from homeassistant.components.light import ATTR_BRIGHTNESS, ATTR_HS_COLOR, ColorMode, LightEntity
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
@@ -26,7 +28,21 @@ from .const import (
     light_device_identifier,
     light_unique_id,
 )
-from .luxor import Group, LuxorError, resolve_hs, set_group_colour
+from .luxor import Group, LuxorError, ThemeGroup, resolve_hs, set_group_colour
+
+#: Answers two questions at once, which is why it is one service and not two.
+#:
+#: Q2 -- which theme does a colour write target? Per entry by default; this takes an optional
+#: `theme_index`, so a single light can be pointed at a different theme without a per-entity
+#: setting that most people would never touch.
+#:
+#: Q3 -- brightness turned out to be transient in exactly the way colour was: theme 0 stores
+#: `Intensity: 100` for all 65 groups, so activating it overwrites whatever Home Assistant set.
+#: Measured, not assumed. Making every brightness change durable was rejected: a slider drag would
+#: rewrite the whole 65-group theme on every step. So brightness stays transient by default and
+#: becomes durable only when asked for, which is what this service is.
+SERVICE_SAVE_TO_THEME = "save_to_theme"
+ATTR_THEME_INDEX = "theme_index"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -73,6 +89,12 @@ async def async_setup_entry(
 
     _sync()
     entry.async_on_unload(data.groups.async_add_listener(_sync))
+
+    entity_platform.async_get_current_platform().async_register_entity_service(
+        SERVICE_SAVE_TO_THEME,
+        {vol.Optional(ATTR_THEME_INDEX): vol.All(vol.Coerce(int), vol.Range(min=0, max=25))},
+        "async_save_to_theme",
+    )
 
 
 class LuxorLight(LightEntity):
@@ -189,6 +211,54 @@ class LuxorLight(LightEntity):
         except LuxorError as err:
             raise HomeAssistantError(f"could not set the colour of {self.name}: {err}") from err
         await self._data.async_persist_slots()
+
+    async def async_save_to_theme(self, theme_index: int | None = None) -> None:
+        """Write this group's CURRENT brightness and colour into a theme, so they persist.
+
+        Both are otherwise transient: a theme stores its own per-group intensity and colour and
+        re-applies both on activation, which on this system happens every evening. Colour set
+        through `light.turn_on` is written to the theme already; brightness is not, deliberately.
+
+        Reads the group fresh rather than trusting the coordinator's cache, because the value being
+        made permanent should be the one the controller actually has.
+        """
+        theme = (
+            theme_index
+            if theme_index is not None
+            else self._entry.options.get(CONF_COLOUR_THEME, DEFAULT_COLOUR_THEME)
+        )
+        try:
+            group = next(
+                (g for g in await self._data.client.group_list() if g.number == self._group_number),
+                None,
+            )
+            if group is None:
+                raise HomeAssistantError(f"group {self._group_number} is not on the controller")
+
+            entries = await self._data.client.theme_groups(theme)
+            if not any(e.number == self._group_number for e in entries):
+                raise HomeAssistantError(
+                    f"{self.name} is not a member of theme {theme}, so saving to it would never "
+                    "be applied"
+                )
+            updated = [
+                ThemeGroup(number=e.number, intensity=group.intensity, colour=group.colr)
+                if e.number == self._group_number
+                else e
+                for e in entries
+            ]
+            await self._data.client.set_theme_groups(theme, updated)
+        except LuxorError as err:
+            raise HomeAssistantError(f"could not save {self.name} to theme {theme}: {err}") from err
+
+        _LOGGER.info(
+            "Saved %s to theme %d at intensity %d, colour %d",
+            self.name,
+            theme,
+            group.intensity,
+            group.colr,
+        )
+        await self._data.themes.async_request_refresh()
 
     async def _call(self, coro) -> None:
         try:
