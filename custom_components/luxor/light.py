@@ -185,7 +185,7 @@ class LuxorLight(LightEntity):
             )
         except LuxorError as err:
             raise HomeAssistantError(f"could not set the colour of {self.name}: {err}") from err
-        self._data.persist_slots(self.hass, self._entry)
+        await self._data.async_persist_slots()
 
     async def _call(self, coro) -> None:
         try:

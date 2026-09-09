@@ -31,9 +31,8 @@ async def test_the_entry_is_adopted_not_migrated(hass: HomeAssistant, setup_entr
 
 
 async def test_entity_counts(hass: HomeAssistant, setup_entry):
-    await setup_entry()
-    registry = er.async_get(hass)
-    entities = [e for e in registry.entities.values() if e.platform == DOMAIN]
+    entry = await setup_entry()
+    entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
     lights = [e for e in entities if e.domain == "light"]
     scenes = [e for e in entities if e.domain == "scene"]
     buttons = [e for e in entities if e.domain == "button"]
@@ -44,37 +43,25 @@ async def test_entity_counts(hass: HomeAssistant, setup_entry):
 
 async def test_every_light_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
     """`LUXOR_LIGHT_{group}` for groups 1-65, and nothing else."""
-    await setup_entry()
-    registry = er.async_get(hass)
-    ids = {
-        e.unique_id
-        for e in registry.entities.values()
-        if e.platform == DOMAIN and e.domain == "light"
-    }
+    entry = await setup_entry()
+    entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+    ids = {e.unique_id for e in entities if e.domain == "light"}
     assert ids == {f"LUXOR_LIGHT_{n}" for n in range(1, 66)}
 
 
 async def test_every_scene_unique_id_is_reproduced_exactly(hass: HomeAssistant, setup_entry):
     """`{name}{index}`, flaws and all. Adopting it is what preserves the three scene entities."""
-    await setup_entry()
-    registry = er.async_get(hass)
-    ids = {
-        e.unique_id
-        for e in registry.entities.values()
-        if e.platform == DOMAIN and e.domain == "scene"
-    }
+    entry = await setup_entry()
+    entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+    ids = {e.unique_id for e in entities if e.domain == "scene"}
     assert ids == {"Theme A0", "Theme B1", "Theme C2"}
 
 
 async def test_no_entity_id_carries_a_suffix(hass: HomeAssistant, setup_entry):
     """A `_2` anywhere means identity was not preserved. It is a stop, not a rename."""
-    await setup_entry()
-    registry = er.async_get(hass)
-    suffixed = [
-        e.entity_id
-        for e in registry.entities.values()
-        if e.platform == DOMAIN and e.entity_id.endswith(("_2", "_3"))
-    ]
+    entry = await setup_entry()
+    entities = er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+    suffixed = [e.entity_id for e in entities if e.entity_id.endswith(("_2", "_3"))]
     assert suffixed == []
 
 
@@ -87,13 +74,8 @@ async def test_device_identifiers_are_reproduced_including_their_flaws(
     Home Assistant's type is `str`. Reproducing them is what keeps the existing 65 devices, and
     asserting it here is what stops a well-meaning cleanup from orphaning them.
     """
-    await setup_entry()
-    registry = dr.async_get(hass)
-    devices = [
-        d
-        for d in registry.devices.values()
-        if any(i[0] in {DOMAIN, DEVICE_LIGHT_NAMESPACE} for i in d.identifiers)
-    ]
+    entry = await setup_entry()
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
 
     hub = [d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers]
     assert len(hub) == 1
@@ -105,25 +87,16 @@ async def test_device_identifiers_are_reproduced_including_their_flaws(
 
 async def test_device_count(hass: HomeAssistant, setup_entry):
     """One controller plus one per group."""
-    await setup_entry()
-    registry = dr.async_get(hass)
-    devices = [
-        d
-        for d in registry.devices.values()
-        if any(i[0] in {DOMAIN, DEVICE_LIGHT_NAMESPACE} for i in d.identifiers)
-    ]
+    entry = await setup_entry()
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
     assert len(devices) == 66
 
 
 async def test_every_light_hangs_off_the_controller(hass: HomeAssistant, setup_entry):
-    await setup_entry()
-    registry = dr.async_get(hass)
-    hub = registry.async_get_device(identifiers={(DOMAIN, CONTROLLER)})
-    children = [
-        d
-        for d in registry.devices.values()
-        if any(i[0] == DEVICE_LIGHT_NAMESPACE for i in d.identifiers)
-    ]
+    entry = await setup_entry()
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    hub = next(d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers)
+    children = [d for d in devices if any(i[0] == DEVICE_LIGHT_NAMESPACE for i in d.identifiers)]
     assert len(children) == 65
     assert all(d.via_device_id == hub.id for d in children)
 

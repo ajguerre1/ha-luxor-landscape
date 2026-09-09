@@ -14,8 +14,15 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 
-from custom_components.luxor.const import CONF_SLOT_TABLE, DOMAIN
+from custom_components.luxor.const import DOMAIN
 from custom_components.luxor.data import SLOT_ISSUE
+from custom_components.luxor.luxor import SlotClaim, SlotTable
+from custom_components.luxor.store import SlotStore
+
+#: On a fresh registry Home Assistant generates the entity id from the device name plus the entity
+#: name. On the live system the existing entries keep their own ids because the unique_id matches,
+#: which is what the identity tests assert; a test starting from empty gets the generated form.
+SCENE_A = "scene.lxtwo_000000000_theme_a"
 
 
 def _entity(hass: HomeAssistant, group: int) -> str:
@@ -119,9 +126,7 @@ async def test_setting_a_colour_writes_the_theme_and_survives_activation(
     assert any(e["GroupNumber"] == 23 and e["Color"] == slot for e in session.theme_groups[0])
 
     # The nightly reclaim is now a no-op.
-    await hass.services.async_call(
-        "scene", "turn_on", {ATTR_ENTITY_ID: "scene.theme_a"}, blocking=True
-    )
+    await hass.services.async_call("scene", "turn_on", {ATTR_ENTITY_ID: SCENE_A}, blocking=True)
     await hass.async_block_till_done()
     assert session.groups[23]["Colr"] == slot
 
@@ -135,9 +140,36 @@ async def test_the_slot_table_is_persisted(hass: HomeAssistant, setup_entry, ses
         blocking=True,
     )
     await hass.async_block_till_done()
-    table = entry.options[CONF_SLOT_TABLE]
-    assert [c["group"] for c in table] == [23]
-    assert table[0]["name_at_claim"] == session.groups[23]["Name"]
+    table = await SlotStore(hass, entry.entry_id).async_load()
+    assert table.slot_for(23) == session.groups[23]["Colr"]
+    assert table.claim_for(23).name_at_claim == session.groups[23]["Name"]
+
+
+async def test_setting_a_colour_does_not_reload_the_entry(
+    hass: HomeAssistant, setup_entry, session
+):
+    """Regression guard.
+
+    The slot table was first persisted into `entry.options`. That fires the update listener, which
+    reloads the integration, so every colour change tore down and rebuilt all 68 entities. CI found
+    it as a reload reaching for a real socket outside the patched session.
+    """
+    entry = await setup_entry()
+    entity = _entity(hass, 23)
+    before = hass.states.get(entity).last_changed
+
+    with patch.object(hass.config_entries, "async_reload") as reload:
+        await hass.services.async_call(
+            "light",
+            SERVICE_TURN_ON,
+            {ATTR_ENTITY_ID: entity, ATTR_HS_COLOR: (200, 90)},
+            blocking=True,
+        )
+        await hass.async_block_till_done()
+    reload.assert_not_called()
+    assert entry.state is ConfigEntryState.LOADED
+    assert hass.states.get(entity) is not None
+    assert before is not None
 
 
 async def test_a_stale_slot_table_disables_colour_and_raises_a_repair(
@@ -149,19 +181,18 @@ async def test_a_stale_slot_table_disables_colour_and_raises_a_repair(
     different group now. Writing anyway is how the fossil block on the reference controller was
     made.
     """
-    hass.config_entries.async_update_entry(
-        legacy_entry,
-        options={
-            CONF_SLOT_TABLE: [
-                {
-                    "group": 23,
-                    "slot": 101,
-                    "name_at_claim": "A Name It Has Not",
-                    "colr_at_claim": 1,
-                    "claimed_at": "2026-09-09T00:00:00+00:00",
-                }
+    await SlotStore(hass, legacy_entry.entry_id).async_save(
+        SlotTable(
+            [
+                SlotClaim(
+                    group=23,
+                    slot=101,
+                    name_at_claim="A Name It Has Not",
+                    colr_at_claim=1,
+                    claimed_at="2026-09-09T00:00:00+00:00",
+                )
             ]
-        },
+        )
     )
     with patch("custom_components.luxor.async_get_clientsession", return_value=session):
         assert await hass.config_entries.async_setup(legacy_entry.entry_id)
@@ -190,9 +221,7 @@ async def test_a_healthy_table_raises_no_repair(hass: HomeAssistant, setup_entry
 
 async def test_all_off_uses_extinguish_all(hass: HomeAssistant, setup_entry, session):
     await setup_entry()
-    await hass.services.async_call(
-        "scene", "turn_on", {ATTR_ENTITY_ID: "scene.theme_a"}, blocking=True
-    )
+    await hass.services.async_call("scene", "turn_on", {ATTR_ENTITY_ID: SCENE_A}, blocking=True)
     await hass.async_block_till_done()
     assert any(g["Inten"] > 0 for g in session.groups.values())
     before = {n: g["Colr"] for n, g in session.groups.items()}

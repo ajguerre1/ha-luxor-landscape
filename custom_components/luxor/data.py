@@ -5,13 +5,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 
-from .const import CONF_SLOT_TABLE, DOMAIN
+from .const import DOMAIN
 from .coordinator import LuxorGroupCoordinator, LuxorThemeCoordinator
 from .luxor import LuxorClient, SlotTable, revalidate
+from .store import SlotStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,11 +25,12 @@ class LuxorData:
     groups: LuxorGroupCoordinator
     themes: LuxorThemeCoordinator
     slots: SlotTable
+    store: SlotStore
     #: Set by revalidation. While this is False every colour write is refused, because a stale slot
     #: claim means the slot may now belong to a different group.
     colour_writable: bool = field(default=True)
 
-    def revalidate_slots(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def revalidate_slots(self, hass: HomeAssistant) -> None:
         """Check the recorded slot claims against the controller as it is now.
 
         Called at every startup, and capable of refusing. A guard that has never rejected anything
@@ -63,7 +64,10 @@ class LuxorData:
             },
         )
 
-    def persist_slots(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
-        hass.config_entries.async_update_entry(
-            entry, options={**entry.options, CONF_SLOT_TABLE: self.slots.to_json()}
-        )
+    async def async_persist_slots(self) -> None:
+        """Save the slot table.
+
+        Through a Store, never through `entry.options`: an options write fires the update listener
+        and reloads the integration, so a colour change would rebuild all 68 entities.
+        """
+        await self.store.async_save(self.slots)

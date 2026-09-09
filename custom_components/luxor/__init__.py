@@ -13,7 +13,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import (
     CONF_GROUP_INTERVAL,
     CONF_HOST,
-    CONF_SLOT_TABLE,
     CONF_THEME_INTERVAL,
     DEFAULT_GROUP_INTERVAL,
     DEFAULT_THEME_INTERVAL,
@@ -23,7 +22,8 @@ from .const import (
 )
 from .coordinator import LuxorGroupCoordinator, LuxorThemeCoordinator
 from .data import LuxorData
-from .luxor import LuxorClient, LuxorError, SlotTable
+from .luxor import LuxorClient, LuxorError
+from .store import SlotStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,15 +52,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: LuxorConfigEntry) -> boo
     await groups.async_config_entry_first_refresh()
     await themes.async_config_entry_first_refresh()
 
+    store = SlotStore(hass, entry.entry_id)
     data = LuxorData(
         client=client,
         controller=controller,
         groups=groups,
         themes=themes,
-        slots=SlotTable.from_json(entry.options.get(CONF_SLOT_TABLE)),
+        slots=await store.async_load(),
+        store=store,
     )
     entry.runtime_data = data
-    data.revalidate_slots(hass, entry)
+    data.revalidate_slots(hass)
 
     dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,

@@ -31,10 +31,6 @@ REQUEST_REFRESH_DELAY: Final = 0.3
 CONF_COLOUR_THEME: Final = "colour_theme"
 DEFAULT_COLOUR_THEME: Final = 0
 
-#: Where the slot table is persisted. It lives in the entry rather than in a separate store so it
-#: cannot drift away from the entry it describes.
-CONF_SLOT_TABLE: Final = "slot_table"
-
 MANUFACTURER: Final = "FXLuminaire"
 
 #: Reproduced exactly, and both parts are off-spec. The namespace is not the integration domain and
