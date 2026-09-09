@@ -81,9 +81,12 @@ it runs under pytest anywhere, including Windows:
 
 ```bash
 pip install -r requirements-test.txt
-pytest tests/ -v
-ruff check . && ruff format --check .
+sh scripts/preflight.sh     # ruff, the full suite, and the strings/translations diff
 ```
+
+`scripts/preflight.sh` exits non-zero on any failure and is meant to gate a push. That matters more
+than it sounds: the site-data guard below can only run where the denylist exists, so CI cannot catch
+that class of problem and a local check that does not block is not a check.
 
 `tests/ha/` needs `pytest-homeassistant-custom-component`, which pulls in Home Assistant, which
 cannot be imported on Windows. Those run in CI. The top-level `conftest.py` detects this and skips
