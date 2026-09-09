@@ -3,11 +3,11 @@
 Landscape lighting control for FX Luminaire **Luxor ZD, ZDC and ZDTWO** controllers, with per-light
 colour that survives the controller's own nightly schedule.
 
-> **Status: early. Not installable yet.**
-> The protocol layer is complete and tested against captured hardware responses. The Home Assistant
-> platforms are not written, so `manifest.json` declares `config_flow: false` and there is nothing
-> to set up. Installing this today gets you a package that loads and does nothing. Watch the
-> releases.
+> **Status: running in production on one system since 2026-09-09.**
+> Sixty-five light groups, three theme scenes and an all-off button on a ZDTWO, replacing
+> `dcramer/hass-luxor` in place with no entity moved. Colour has been verified against a direct
+> controller read and confirmed to survive a theme activation. One installation is one
+> installation: treat it accordingly.
 
 ## Why another Luxor integration
 
@@ -20,11 +20,15 @@ it works. This project exists because of one thing it cannot do and one thing it
   `async_setup_entry`, reading the CA bundle from disk. The controller is plain HTTP on port 80, so
   the TLS context is never used. The fix lives in an upstream library that last shipped in 2023.
 
-It also passes a `via_device` kwarg that Home Assistant removes in 2027.8.0.
+It also passes a `via_device` kwarg that Home Assistant removes in 2027.8.0 — and, for the record,
+this integration shipped that same defect in v0.1.0 before a live boot exposed it. Fixed in v0.1.1.
 
-This integration reuses the `luxor` domain and reproduces that project's `unique_id` and device
-identifier schemes exactly, so replacing it preserves every entity id, device id and area. That
-compatibility is deliberate and it is owed to `dcramer/hass-luxor`, whose entity model this follows.
+This integration reuses the `luxor` domain and, on first load, reproduces that project's `unique_id`
+and device identifier schemes exactly, so replacing it preserves every entity id, device id and
+area. From v0.2.0 those inherited schemes are then converted in place to controller-scoped ones —
+`async_update_entity` and `async_update_device` change the scheme without moving the entity_id or
+device_id. That compatibility is deliberate and it is owed to `dcramer/hass-luxor`, whose entity
+model this follows.
 
 ## The one thing worth knowing about Luxor colour
 
@@ -70,9 +74,20 @@ reached the wire rather than against a return value.
 
 HACS → ⋮ → Custom repositories → add this repository, category **Integration** → install → restart.
 
-If you are replacing `dcramer/hass-luxor`: **add this repository before removing that one**, verify
-the files are on disk, then restart. Do not delete the config entry at any point — the entry is what
-carries your entity ids, and it survives a HACS uninstall of the files.
+**If you are replacing `dcramer/hass-luxor`, the order matters and it is not the obvious one.** Both
+integrations use `custom_components/luxor/`, and HACS's uninstall deletes that directory wholesale —
+so anything installed before the removal is deleted by it.
+
+1. **Register** this repository as a custom repository. Registering writes no files. Do not install.
+2. **Remove** `dcramer/hass-luxor`.
+3. **Install** this one, then check the files are actually on disk before restarting.
+
+**Do not delete the config entry at any point.** It is what carries your entity ids, and it survives
+a HACS uninstall of the files. That is the entire mechanism.
+
+**Rolling back is cheap until v0.2.0 and not afterwards.** v0.1.x leaves the inherited identity
+untouched, so re-installing the old integration just works. v0.2.0 converts it, after which the old
+integration would no longer recognise your entities.
 
 ## Development
 
