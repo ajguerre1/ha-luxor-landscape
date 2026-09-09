@@ -54,7 +54,10 @@ def legacy_entry(hass: HomeAssistant) -> MockConfigEntry:
         options={},
         version=1,
         unique_id=None,
-        title="FXLuxor Controller",
+        # Generic. The live entry's title is site data, and the site-data guard caught it here on
+        # its very first run. The title is not load-bearing anyway: entity identity comes from the
+        # unique_id, which is what the identity tests assert.
+        title="Luxor Controller",
     )
     entry.add_to_hass(hass)
     return entry
