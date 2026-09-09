@@ -9,7 +9,7 @@ now that adoption is proven.
   not the integration domain, and its value is an `int` where Home Assistant's type is `str`.
 * light `LUXOR_LIGHT_23` becomes `<controller>_group_23`. The old one is not controller-scoped, so
   a second Luxor collides silently: group numbers start at 1 on every controller.
-* scene `Sunset and Sunrise0` becomes `<controller>_theme_0`. The old one derives from the theme's
+* scene `Evening Wash0` becomes `<controller>_theme_0`. The old one derives from the theme's
   **name**, so renaming a theme on the faceplate orphans the entity.
 
 **This updates registry records in place; it does not recreate them.**
