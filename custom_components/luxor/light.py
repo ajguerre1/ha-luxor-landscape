@@ -23,7 +23,6 @@ from .const import (
     CONF_COLOUR_THEME,
     DEFAULT_COLOUR_THEME,
     DEVICE_LIGHT_NAMESPACE,
-    DOMAIN,
     MANUFACTURER,
 )
 from .luxor import Group, LuxorError, resolve_hs, set_group_colour
@@ -109,7 +108,10 @@ class LuxorLight(LightEntity):
             identifiers={(DEVICE_LIGHT_NAMESPACE, self._group_number)},
             manufacturer=MANUFACTURER,
             name=self.name,
-            via_device=(DOMAIN, self._data.controller),
+            # `via_device_id`, not `via_device`. The latter is gone from DeviceInfo in 2026.9 and
+            # emits a deprecation dated 2027.8.0 -- which is the defect this integration replaced
+            # the old one partly to fix, and which it reproduced until the live cutover showed it.
+            via_device_id=self._data.controller_device_id,
         )
 
     @property

@@ -112,3 +112,36 @@ async def test_a_light_keeps_the_controller_s_own_name(hass: HomeAssistant, setu
     assert state.attributes["friendly_name"] == (
         "Group Seventeen Xyz" if group == 7 else f"Group {group:02d}"
     )
+
+
+async def test_no_deprecated_device_registry_key_is_emitted(hass: HomeAssistant, setup_entry):
+    """`via_device_id`, never `via_device`.
+
+    This test exists because CI did not catch the real thing. The integration shipped with
+    `DeviceInfo(via_device=...)`, which Home Assistant 2026.9 removed from `DeviceInfo` entirely
+    and which emits a deprecation dated **2027.8.0** -- the very defect this integration replaced
+    the old one partly to fix. It only surfaced on the live system, after the cutover.
+
+    Asserted against the `DeviceInfo` the entity actually returns rather than against a log line,
+    because a warning that fires once per integration per boot is easy to miss and easy to filter.
+    """
+    entry = await setup_entry()
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    hub = next(d for d in devices if (DOMAIN, CONTROLLER) in d.identifiers)
+
+    lights = [
+        e
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if e.domain == "light"
+    ]
+    assert lights, "no light entities to inspect"
+
+    component = hass.data["entity_components"]["light"]
+    entity = component.get_entity(lights[0].entity_id)
+    info = entity.device_info
+
+    assert "via_device" not in info, (
+        "DeviceInfo carries the deprecated `via_device` key; it is removed in Home Assistant "
+        "2027.8.0 and is absent from DeviceInfo in 2026.9"
+    )
+    assert info.get("via_device_id") == hub.id

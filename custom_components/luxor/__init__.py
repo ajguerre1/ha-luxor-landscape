@@ -64,12 +64,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: LuxorConfigEntry) -> boo
     entry.runtime_data = data
     data.revalidate_slots(hass)
 
-    dr.async_get(hass).async_get_or_create(
+    hub = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, controller)},
         manufacturer=MANUFACTURER,
         name=controller,
     )
+    # The lights hang off this device, and they must reference it by registry id. Created before
+    # the platforms are forwarded so the id exists by the time an entity asks for it.
+    data.controller_device_id = hub.id
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))

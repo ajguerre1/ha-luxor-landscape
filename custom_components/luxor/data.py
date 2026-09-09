@@ -26,6 +26,11 @@ class LuxorData:
     themes: LuxorThemeCoordinator
     slots: SlotTable
     store: SlotStore
+    #: The controller device's REGISTRY id, not its identifier tuple. `DeviceInfo` in Home
+    #: Assistant 2026.9 has `via_device_id` and no longer has `via_device` at all; passing the old
+    #: key emits a deprecation with a removal date of 2027.8.0. Found on the live system after the
+    #: cutover, because the CI suite did not surface it.
+    controller_device_id: str = ""
     #: Set by revalidation. While this is False every colour write is refused, because a stale slot
     #: claim means the slot may now belong to a different group.
     colour_writable: bool = field(default=True)
