@@ -108,6 +108,13 @@ cannot be imported on Windows. Those run in CI. The top-level `conftest.py` dete
 the directory rather than failing collection — and if a Home Assistant import ever drifts into the
 protocol package, the offline suite stops collecting instead of quietly passing.
 
+**Brand images** are generated from FX Luminaire's own marks by `scripts/make_brand_assets.py`,
+which keys the lettering off its navy background onto transparency and produces both polarities —
+near-black ink for a light theme, the original white for a dark one. The `dark_` variants are not
+optional decoration: the source is white-on-navy, and white lettering measures **1.07:1** against
+Home Assistant's light card, which reads as no icon at all. `tests/test_brand_assets.py` measures
+that rather than assuming it.
+
 **Every fixture in `tests/fixtures/` is a captured response**, not an invented one. The only edit is
 that group and theme names were replaced with generic ones and the controller serial zeroed, because
 those identify a specific property. Every number is exactly what the hardware returned. A fixture is

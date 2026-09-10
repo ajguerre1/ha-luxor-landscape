@@ -22,3 +22,8 @@ aiohttp>=3.10
 # Catching breakage from those is the reason that run exists; an exact pin would make it a no-op.
 pytest-homeassistant-custom-component>=0.13.363
 pytest-cov
+
+# Only for tests/test_brand_assets.py, which measures the generated icons rather than merely
+# checking they exist. The integration itself never imports it, and scripts/make_brand_assets.py is
+# run by hand.
+Pillow>=10.0
