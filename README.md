@@ -65,6 +65,33 @@ The protocol client enforces two rules that make that unrepeatable:
 `tests/test_allowlist.py` was written before the client it guards, and it asserts against what
 reached the wire rather than against a return value.
 
+## Using it
+
+**Colour.** Set `hs_color` on any light and it is written into a theme, so the controller's own
+schedule comes up in the colour you chose rather than reverting to it. Which theme is a setting in
+the integration's options, defaulting to the first one.
+
+**Brightness is temporary, on purpose.** A theme stores its own per-group intensity and re-applies
+it whenever it runs, so a brightness set from Home Assistant is gone by the next evening. Making
+every change permanent was rejected: a slider drag would rewrite the whole theme on every step.
+
+**`luxor.save_to_theme`** is how you make it permanent when you want to. It writes a light's current
+brightness *and* colour into a theme, reading the group fresh from the controller rather than from
+the poll cache. An optional `theme_index` targets a different theme than the configured default —
+useful for one light that should differ from the rest. Choose it deliberately: alarm modes are
+themes too, and it refuses to write a theme the light is not a member of, because that write would
+never be applied and would look like it had worked.
+
+```yaml
+action: luxor.save_to_theme
+target:
+  entity_id: light.front_path
+data:
+  theme_index: 0        # optional; omit to use the configured theme
+```
+
+**All off** is a button on the controller device. There is no all-on — see Safety.
+
 ## Requirements
 
 - An FX Luminaire Luxor controller reachable over HTTP on your network. Colour needs a ZDC or ZDTWO.
