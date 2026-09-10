@@ -1,165 +1,137 @@
 # FX Luminaire Luxor for Home Assistant
 
-Landscape lighting control for FX Luminaire **Luxor ZD, ZDC and ZDTWO** controllers, with per-light
-colour that survives the controller's own nightly schedule.
+Control your FX Luminaire Luxor landscape lighting from Home Assistant.
 
-> **Status: running in production on one system since 2026-09-09.**
-> Sixty-five light groups, three theme scenes and an all-off button on a ZDTWO, replacing
-> `dcramer/hass-luxor` in place with no entity moved. Colour has been verified against a direct
-> controller read and confirmed to survive a theme activation. One installation is one
-> installation: treat it accordingly.
+Each of your light groups appears as a normal Home Assistant light, so you can turn it on and off,
+dim it, and on colour-capable systems pick a colour. Your existing themes appear as scenes, and
+there is a button to turn everything off.
 
-## Why another Luxor integration
+Colour works the way you would expect it to: a colour you set stays set, including after your
+controller's own sunset schedule runs.
 
-There is an existing one, [`dcramer/hass-luxor`](https://github.com/dcramer/hass-luxor) (MIT), and
-it works. This project exists because of one thing it cannot do and one thing it cannot stop doing:
+Works with Luxor ZD, ZDC and ZDTWO controllers. Colour needs a ZDC or ZDTWO.
 
-- **It cannot set a colour.** Its I/O layer is a client generated from an OpenAPI document that has
-  no colour operation at all. Colour is unreachable from that stack by construction.
-- **It blocks the event loop twice per boot.** Its generated client builds an `ssl.SSLContext` in
-  `async_setup_entry`, reading the CA bundle from disk. The controller is plain HTTP on port 80, so
-  the TLS context is never used. The fix lives in an upstream library that last shipped in 2023.
+## Features
 
-It also passes a `via_device` kwarg that Home Assistant removes in 2027.8.0 — and, for the record,
-this integration shipped that same defect in v0.1.0 before a live boot exposed it. Fixed in v0.1.1.
+- **Your light groups as Home Assistant lights.** On, off and dimming for every group.
+- **Colour**, on ZDC and ZDTWO systems. Pick a colour and it stays, evening after evening.
+- **Your themes as scenes.** Activate any theme from Home Assistant, an automation or a dashboard.
+- **An all-off button** for the whole system.
+- **A save-to-theme action**, for when you want a brightness or colour change to be permanent.
+- **Nothing to configure by hand.** Point it at your controller and it finds your groups and themes.
 
-This integration reuses the `luxor` domain and, on first load, reproduces that project's `unique_id`
-and device identifier schemes exactly, so replacing it preserves every entity id, device id and
-area. From v0.2.0 those inherited schemes are then converted in place to controller-scoped ones —
-`async_update_entity` and `async_update_device` change the scheme without moving the entity_id or
-device_id. That compatibility is deliberate and it is owed to `dcramer/hass-luxor`, whose entity
-model this follows.
+### A couple of things worth knowing
 
-## The one thing worth knowing about Luxor colour
+**Brightness resets each evening, and that is deliberate.** Your controller stores a brightness for
+every group inside each theme, and re-applies it whenever that theme runs. So if you dim a light
+from Home Assistant, the next scheduled evening brings it back to whatever the theme says. If you
+want a change to stick, use the save action below. Colour is handled for you and needs none of this.
 
-**A light group does not own its colour. The theme does.**
-
-A group carries a `Colr`, which is an index into a shared 250-slot palette. But that index is not a
-setting the group holds — it is whatever the last theme to run painted onto it. Every theme stores
-its own per-group colour, and re-applies it on activation. On a controller with an astronomic
-schedule, that happens every evening.
-
-So an integration that writes colour at the group level produces a colour that works, looks correct
-all evening, and is silently reverted at sunset. Both existing open-source Luxor projects do this;
-the Homebridge plugin's own configuration calls the mode `"legacy behavior"` and defaults it off.
-
-This integration writes the **theme**, then points the group at the same palette slot. The nightly
-re-apply then writes the value that is already there, so it becomes a no-op instead of a fight.
-
-## Safety
-
-The controller executes some commands on an empty request body, because a method with no required
-parameters has nothing to be missing. Finding out whether a method exists by calling it is therefore
-indistinguishable from commanding it. This was learned the hard way, on real hardware.
-
-The protocol client enforces two rules that make that unrepeatable:
-
-- **A method allowlist.** Anything not explicitly permitted raises rather than being sent, and the
-  refusal says why. `IlluminateAll` in particular is permanently denied: it sets every group to
-  `Colr 0`, destroying the colour configuration across the whole system. There is no sanctioned
-  all-on — the manual states the physical control is off-only. All-off uses `ExtinguishAll`, which
-  was measured not to disturb colour.
-- **Client-side field validation.** Every required field is checked before a socket is opened,
-  because the controller treats a missing field as a default rather than an error.
-
-`tests/test_allowlist.py` was written before the client it guards, and it asserts against what
-reached the wire rather than against a return value.
-
-## Using it
-
-**Colour.** Set `hs_color` on any light and it is written into a theme, so the controller's own
-schedule comes up in the colour you chose rather than reverting to it. Which theme is a setting in
-the integration's options, defaulting to the first one.
-
-**Brightness is temporary, on purpose.** A theme stores its own per-group intensity and re-applies
-it whenever it runs, so a brightness set from Home Assistant is gone by the next evening. Making
-every change permanent was rejected: a slider drag would rewrite the whole theme on every step.
-
-**`luxor.save_to_theme`** is how you make it permanent when you want to. It writes a light's current
-brightness *and* colour into a theme, reading the group fresh from the controller rather than from
-the poll cache. An optional `theme_index` targets a different theme than the configured default —
-useful for one light that should differ from the rest. Choose it deliberately: alarm modes are
-themes too, and it refuses to write a theme the light is not a member of, because that write would
-never be applied and would look like it had worked.
+**To make a change permanent**, use the `Luxor: Save to theme` action. It takes the light's current
+brightness and colour and writes them into a theme, so your controller's own schedule comes up that
+way from then on.
 
 ```yaml
 action: luxor.save_to_theme
 target:
   entity_id: light.front_path
-data:
-  theme_index: 0        # optional; omit to use the configured theme
 ```
 
-**All off** is a button on the controller device. There is no all-on — see Safety.
+By default it saves into the theme chosen in the integration's options. You can point it at a
+different theme if you want one light to differ from the rest. Choose carefully, because alarm
+modes are themes too.
 
-## Requirements
-
-- An FX Luminaire Luxor controller reachable over HTTP on your network. Colour needs a ZDC or ZDTWO.
-- Home Assistant 2026.9.0 or newer.
+**There is no all-on button.** Luxor's own manual states the physical all-on control is off-only,
+and the controller's all-on command wipes the colour settings for every group on the system.
+Turning on a theme, or an individual group, does the job safely.
 
 ## Installation
 
-HACS → ⋮ → Custom repositories → add this repository, category **Integration** → install → restart.
+You will need Home Assistant 2026.9.0 or newer, and a Luxor controller reachable on your network.
 
-**If you are replacing `dcramer/hass-luxor`, the order matters and it is not the obvious one.** Both
-integrations use `custom_components/luxor/`, and HACS's uninstall deletes that directory wholesale —
-so anything installed before the removal is deleted by it.
+1. In HACS, open the three-dot menu and choose **Custom repositories**.
+2. Add this repository, with category **Integration**.
+3. Install it, then restart Home Assistant.
+4. Go to **Settings → Devices & services → Add integration** and search for **Luxor**.
+5. Enter your controller's address when asked.
 
-1. **Register** this repository as a custom repository. Registering writes no files. Do not install.
-2. **Remove** `dcramer/hass-luxor`.
-3. **Install** this one, then check the files are actually on disk before restarting.
+Your groups, themes and the all-off button appear automatically.
 
-**Do not delete the config entry at any point.** It is what carries your entity ids, and it survives
-a HACS uninstall of the files. That is the entire mechanism.
+### If you are replacing the older `dcramer/hass-luxor`
 
-**Rolling back is cheap until v0.2.0 and not afterwards.** v0.1.x leaves the inherited identity
-untouched, so re-installing the old integration just works. v0.2.0 converts it, after which the old
-integration would no longer recognise your entities.
+The order matters here, and it is not the obvious one. Both versions install into the same folder,
+and removing the old one deletes that folder, so anything you install first gets deleted with it.
 
-## Development
+1. **Add** this repository as a custom repository. This only registers it and writes no files.
+   Do not install yet.
+2. **Remove** the old integration in HACS.
+3. **Now install** this one, then restart.
 
-The protocol package under `custom_components/luxor/luxor/` imports nothing from Home Assistant, so
-it runs under pytest anywhere, including Windows:
+**Do not delete the Luxor entry under Settings at any point during this.** It is what keeps your
+existing light names, history and dashboards working, and it survives the swap on its own.
 
-```bash
-pip install -r requirements-test.txt
-sh scripts/preflight.sh     # ruff, the full suite, and the strings/translations diff
-```
+Once you are past version 0.2.0, going back to the older integration is no longer supported, so take
+a backup first if that matters to you.
 
-`scripts/preflight.sh` exits non-zero on any failure and is meant to gate a push. That matters more
-than it sounds: the site-data guard below can only run where the denylist exists, so CI cannot catch
-that class of problem and a local check that does not block is not a check.
+## Uninstallation
 
-`tests/ha/` needs `pytest-homeassistant-custom-component`, which pulls in Home Assistant, which
-cannot be imported on Windows. Those run in CI. The top-level `conftest.py` detects this and skips
-the directory rather than failing collection — and if a Home Assistant import ever drifts into the
-protocol package, the offline suite stops collecting instead of quietly passing.
+1. Go to **Settings → Devices & services**, find **Luxor**, and delete it. This removes the lights,
+   scenes and button from Home Assistant.
+2. In HACS, find this integration and choose **Remove**.
+3. Restart Home Assistant.
 
-**Brand images** are generated from FX Luminaire's own marks by `scripts/make_brand_assets.py`,
-which keys the lettering off its navy background onto transparency and produces both polarities —
-near-black ink for a light theme, the original white for a dark one. The `dark_` variants are not
-optional decoration: the source is white-on-navy, and white lettering measures **1.07:1** against
-Home Assistant's light card, which reads as no icon at all. `tests/test_brand_assets.py` measures
-that rather than assuming it.
+Nothing is changed on your controller. Your groups, themes and colours stay exactly as they are, and
+your Luxor app and wall controller keep working as before.
 
-**Every fixture in `tests/fixtures/` is a captured response**, not an invented one. The only edit is
-that group and theme names were replaced with generic ones and the controller serial zeroed, because
-those identify a specific property. Every number is exactly what the hardware returned. A fixture is
-a claim about hardware, and inventing one makes the whole suite agree with a misreading.
+## Troubleshooting
+
+**The lights show as unavailable.**
+Home Assistant cannot reach the controller. Check that it is powered on and on the network, and that
+the address you entered is still correct. If your controller gets its address automatically, a
+router restart can change it, so a fixed address is worth setting up.
+
+**I cannot set a colour.**
+Colour needs a ZDC or ZDTWO controller. On an original ZD the lights are dimmable only. If you do
+have a colour-capable controller and one particular light still will not take a colour, that fixture
+is most likely a plain white one.
+
+**My brightness goes back to full every evening.**
+That is expected, and it is your controller doing it rather than Home Assistant. See the note above,
+and use the save action to make a level permanent.
+
+**A colour changed back on its own.**
+Colours are saved into a theme. If the theme that runs on your schedule is not the one this
+integration is set to write, you will see exactly this. Check the theme selected under
+**Settings → Devices & services → Luxor → Configure**.
+
+**Setup fails when I add the integration.**
+The controller speaks plain HTTP on port 80. Enter just the address, with no `https` and no port
+number. It also handles one request at a time, so make sure nothing else is talking to it right then.
+
+**I renamed a theme and its scene vanished.**
+Restart Home Assistant and it will pick up the new name.
+
+**Something else.**
+Please open an issue, and include your controller model and what you were doing at the time. Turning
+on debug logging for the integration first will make the report far more useful.
 
 ## Credits
 
-- [`dcramer/hass-luxor`](https://github.com/dcramer/hass-luxor) (MIT) — the entity model, and the
-  `unique_id` and device identifier schemes this integration reproduces for compatibility.
+This project builds on work by others and would not exist without it.
+
+- [`dcramer/hass-luxor`](https://github.com/dcramer/hass-luxor) — the original Home Assistant
+  integration, and the model this one follows so that switching over keeps your existing setup
+  intact.
 - [`tagyoureit/homebridge-luxor`](https://github.com/tagyoureit/homebridge-luxor) and
   [`tagyoureit/hubitat-luxor`](https://github.com/tagyoureit/hubitat-luxor) — the original
-  reverse-engineering of the colour protocol, including the palette model and the status codes.
-- [`dcramer/luxor-openapi`](https://github.com/dcramer/luxor-openapi) (Apache-2.0) — the request and
-  response schemas, including `ThemeGet` and `ThemeSet`, which are what make durable colour possible.
+  reverse-engineering of how Luxor colour works.
+- [`dcramer/luxor-openapi`](https://github.com/dcramer/luxor-openapi) — documentation of the
+  controller's theme commands, which are what make lasting colour possible.
 - [`scottlamb/luxor`](https://github.com/scottlamb/luxor) — protocol documentation for the ZD.
 
-Not affiliated with or endorsed by FX Luminaire or Hunter Industries.
+Not affiliated with or endorsed by FX Luminaire or Hunter Industries. FX Luminaire and the FX mark
+are trademarks of Hunter Industries.
 
 ## Licence
 
-MIT.
+MIT. See [LICENSE](LICENSE).
